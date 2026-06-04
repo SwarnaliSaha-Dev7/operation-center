@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+
+<div class="w-full mt-6 space-y-6 max-w-none">
+    <div class="bg-gradient-to-br from-emerald-50 via-white to-green-50 rounded-2xl shadow-sm border border-slate-200 px-6 py-5">
+        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-800">{{ title }}</h1>
+                <p class="text-sm text-slate-600 mt-1">
+                    {% if machine.code %}<span class="font-mono text-slate-700">{{ machine.code }}</span> · {% endif %}
+                    Created {{ machine.created_at|date:"M j, Y H:i" }}
+                    {% if machine.createdby %} · by {{ machine.createdby.get_full_name|default:machine.createdby.username }}{% endif %}
+                </p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <a href="{{ list_url }}" class="inline-flex items-center px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors">Back to list</a>
+                <a href="{{ detail_url }}" class="inline-flex items-center px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors">Details</a>
+                {% if can_edit %}
+                <a href="{{ update_url }}" class="inline-flex items-center px-3 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors">Edit machine</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Member assignment events</div>
+            <div class="text-2xl font-bold text-slate-800 mt-1">{{ member_change_count }}</div>
+            <p class="text-xs text-slate-500 mt-1">Recorded reassignments and assign/unassign actions</p>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Users assigned (distinct)</div>
+            <div class="text-2xl font-bold text-slate-800 mt-1">{{ unique_assigned_user_ids }}</div>
+            <p class="text-xs text-slate-500 mt-1">From history entries with a non-empty assignee</p>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Current assignee</div>
+            <div class="text-sm font-semibold text-slate-800 mt-1">
+                {% if machine.member %}
+                    {{ machine.member.get_full_name|default:machine.member.username }}
+                    <span class="text-slate-500 font-normal">({{ machine.member.username }})</span>
+                {% else %}
+                    <span class="text-slate-500">Unassigned</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if not entries %}
+    <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        No activity has been recorded yet for this machine. History is captured when the machine is created and when you save changes (member, OS, or hardware configuration).
+    </div>
+    {% else %}
+
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 bg-slate-50">
+            <h2 class="text-lg font-semibold text-slate-800">Activity timeline</h2>
+            <p class="text-sm text-slate-500 mt-0.5">Newest first. Hardware entries show only what changed since the previous save (upgrade/downgrade is inferred from quantities and add/remove).</p>
+        </div>
+        <ul class="divide-y divide-slate-100">
+            {% for e in entries %}
+            <li class="px-6 py-4 hover:bg-slate-50/80 transition-colors">
+                <div class="flex flex-col sm:flex-row sm:items-start gap-3">
+                    <div class="shrink-0 mt-0.5">
+                        {% if e.event_type == 'machine_created' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">Created</span>
+                        {% elif e.event_type == 'member_changed' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">Member</span>
+                        {% elif e.event_type == 'os_changed' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800">OS</span>
+                        {% elif e.event_type == 'components_updated' and e.metadata.change_tone == 'upgrade' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">Upgrade</span>
+                        {% elif e.event_type == 'components_updated' and e.metadata.change_tone == 'downgrade' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-800">Downgrade</span>
+                        {% elif e.event_type == 'components_updated' and e.metadata.change_tone == 'mixed' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-900">Mixed</span>
+                        {% elif e.event_type == 'components_updated' and e.metadata.change_tone == 'replacement' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-100 text-sky-800">Replacement</span>
+                        {% elif e.event_type == 'components_updated' and e.metadata.change_tone == 'initial' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-violet-100 text-violet-800">Initial</span>
+                        {% else %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-violet-100 text-violet-800">Hardware</span>
+                        {% endif %}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-slate-800 font-medium">{{ e.summary }}</p>
+                        <p class="text-xs text-slate-500 mt-1">
+                            {{ e.created_at|date:"M j, Y H:i" }}
+                            {% if e.created_by %} · {{ e.created_by.get_full_name|default:e.created_by.username }}{% endif %}
+                        </p>
+                        {% if e.event_type == 'components_updated' and e.metadata.diff %}
+                        <pre class="mt-3 text-xs text-slate-700 bg-slate-50 rounded-lg p-3 overflow-x-auto whitespace-pre-wrap font-mono border border-slate-200">{{ e.metadata.diff }}</pre>
+                        {% elif e.event_type == 'components_updated' and e.metadata.detail %}
+                        <pre class="mt-3 text-xs text-slate-700 bg-slate-50 rounded-lg p-3 overflow-x-auto whitespace-pre-wrap font-mono border border-slate-200">{{ e.metadata.detail }}</pre>
+                        {% endif %}
+                    </div>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

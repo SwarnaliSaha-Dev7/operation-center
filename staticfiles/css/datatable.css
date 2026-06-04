@@ -1,0 +1,154 @@
+/* DataTables wrapper: fixed height, table area scrolls, bottom bar stays at bottom */
+.dataTables_wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  /* max-height: calc(100vh - 12rem); */
+}
+
+/* Middle section (table) scrolls — avoid overflow-x: hidden so sticky columns work */
+.dataTables_wrapper > div:nth-child(2) {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: visible;
+}
+
+/* Bottom bar (info + pagination) fixed at bottom */
+.dataTables_wrapper > div:last-child {
+  flex-shrink: 0;
+  background: rgb(248 250 252);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* Keep header and body column widths in sync */
+.dataTables_wrapper table.dataTable {
+  table-layout: fixed;
+  width: 100% !important;
+  border-collapse: collapse;
+}
+
+.dataTables_wrapper table.dataTable thead th,
+.dataTables_wrapper table.dataTable tbody td {
+  box-sizing: border-box;
+}
+
+/* Sync scroll header table with body when using scrollX */
+.dataTables_wrapper .dataTables_scrollHead table,
+.dataTables_wrapper .dataTables_scrollBody table {
+  table-layout: fixed;
+  width: 100% !important;
+}
+
+.dataTables_wrapper .dataTables_scrollHeadInner {
+  width: 100% !important;
+}
+
+.dataTables_wrapper .dataTables_scrollHeadInner table {
+  margin: 0 !important;
+}
+
+/* Center container already handled by your dom */
+.dataTables_filter {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Input styling */
+.dataTables_filter input {
+  width: 320px;
+  padding: 10px 16px !important;
+  padding-left: 30px;
+  border-radius: 899px !important; 
+  border: 1px solid rgb(79, 79, 190);
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 14px;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+/* Placeholder */
+.dataTables_filter input::placeholder {
+  color: #94a3b8;
+}
+
+/* Focus effect */
+.dataTables_filter input:focus {
+  outline: none;
+  border-color: rgb(81, 81, 207);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.15),
+              0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* Hover effect */
+.dataTables_filter input:hover {
+  border-color: #cbd5f5;
+}
+
+
+/* Do not set overflow-x: hidden here — it breaks position:sticky on the actions column.
+   Horizontal scroll is handled inside .dataTables_scrollBody (DataTables scrollX). */
+.dataTables_scroll {
+  max-height: 450px !important;
+  overflow-y: auto;
+  overflow-x: visible;
+}
+
+.dataTables_wrapper .dataTables_scrollBody {
+  overflow-x: auto !important;
+}
+.dataTables_wrapper .grid {
+	display: flex !important;
+	flex-direction: row !important;
+	justify-content: space-between !important;
+}
+
+.dataTables_wrapper td {
+  font-size: 12px !important;
+}
+
+.dataTables_wrapper thead tr th:first-child,
+.dataTables_wrapper tbody tr td:first-child {
+  width: 50px !important;
+}
+
+@media (width <= 576px) {
+	.dataTables_wrapper .grid {
+		flex-direction: column !important;
+	}
+}
+
+/* Sticky last column (actions): fixed width, stays fixed while other columns scroll */
+.dataTables_wrapper table.dataTable thead th:last-child,
+.dataTables_wrapper table.dataTable tbody td:last-child {
+  position: -webkit-sticky;
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  width: 9rem !important;
+  min-width: 9rem !important;
+  max-width: 9rem !important;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  background-clip: padding-box;
+  box-shadow: -8px 0 12px -10px rgba(15, 23, 42, 0.25);
+}
+
+.dataTables_wrapper table.dataTable tbody td:last-child {
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.dataTables_wrapper table.dataTable thead th:last-child {
+  z-index: 4;
+  background-color: #ffffff;
+}
+
+.dataTables_wrapper table.dataTable tbody tr:hover td:last-child {
+  background-color: rgb(248 250 252);
+}
+

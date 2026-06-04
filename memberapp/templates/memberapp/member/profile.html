@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-none space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h1 class="text-2xl font-semibold text-slate-800">{{ title }}</h1>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:items-stretch">
+        <!-- Account (left on large screens) -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden border-l-4 border-l-indigo-500 flex flex-col min-h-0 h-full">
+            <div class="px-5 py-4 border-b border-slate-100 bg-slate-50/80 shrink-0">
+                <h2 class="text-sm font-semibold text-slate-800 uppercase tracking-wide">Account</h2>
+                <p class="text-xs text-slate-500 mt-0.5">Managed by your administrator: username, roles, and organization.</p>
+            </div>
+            <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1 content-start">
+                <div class="rounded-lg border border-slate-100 bg-slate-50/50 p-3">
+                    <div class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Username</div>
+                    <div class="text-sm font-semibold text-slate-800 break-words">{{ user.username }}</div>
+                </div>
+                <div class="rounded-lg border border-slate-100 bg-slate-50/50 p-3">
+                    <div class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Employee ID</div>
+                    <div class="text-sm font-semibold text-slate-800">{{ user.employee_id|default:"—" }}</div>
+                </div>
+                <div class="rounded-lg border border-slate-100 bg-slate-50/50 p-3 sm:col-span-2">
+                    <div class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Roles</div>
+                    <div class="text-sm font-semibold text-slate-800">{{ role_names }}</div>
+                </div>
+                <div class="rounded-lg border border-slate-100 bg-slate-50/50 p-3">
+                    <div class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Status</div>
+                    <div class="text-sm font-semibold">
+                        {% if user.is_active %}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">Active</span>
+                        {% else %}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">Inactive</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="rounded-lg border border-slate-100 bg-slate-50/50 p-3">
+                    <div class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Team</div>
+                    <div class="text-sm font-semibold text-slate-800">{{ user.team|default:"—" }}</div>
+                </div>
+                <div class="rounded-lg border border-slate-100 bg-slate-50/50 p-3">
+                    <div class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Department</div>
+                    <div class="text-sm font-semibold text-slate-800">{{ user.department|default:"—" }}</div>
+                </div>
+                <div class="rounded-lg border border-slate-100 bg-slate-50/50 p-3 sm:col-span-2">
+                    <div class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Designation</div>
+                    <div class="text-sm font-semibold text-slate-800">{{ user.designation|default:"—" }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact details (right on large screens) -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden border-l-4 border-l-amber-500 flex flex-col min-h-0 h-full">
+            <div class="px-5 py-4 border-b border-slate-100 bg-slate-50/80 shrink-0">
+                <h2 class="text-sm font-semibold text-slate-800 uppercase tracking-wide">Contact details</h2>
+                <p class="text-xs text-slate-500 mt-0.5">You can update your name, email, and phone here.</p>
+            </div>
+            <form method="post" class="p-6 flex flex-col flex-1 min-h-0">
+                {% csrf_token %}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 gap-y-6 flex-1">
+                    {% for field in form %}
+                    <div class="{% if field.name == 'email' %}sm:col-span-2{% endif %} {% if field.errors %}has-error{% endif %}">
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ field.errors.0 }}</p>
+                        {% endif %}
+                        {% if field.help_text %}
+                        <p class="mt-1 text-xs text-slate-500">{{ field.help_text }}</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="flex flex-wrap gap-3 pt-6 mt-6 border-t border-slate-200 shrink-0">
+                    <button type="submit" class="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-sm font-medium hover:opacity-90 transition">
+                        Save changes
+                    </button>
+                    <a href="{% url 'dashboardapp:Dashboard' %}" class="inline-flex items-center justify-center px-5 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-700 text-sm font-medium hover:bg-slate-50 transition">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

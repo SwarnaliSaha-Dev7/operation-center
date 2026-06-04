@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="w-full">
+    <h1 class="text-2xl font-semibold text-slate-800 mb-5">{{ title }}</h1>
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden border-l-4 border-l-amber-500">
+        <form method="post" class="p-6">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 gap-y-6 max-w-xl">
+                {% for field in form %}
+                <div class="{% if field.errors %}has-error{% endif %} md:col-span-2">
+                    <label class="block text-sm font-medium text-slate-700 mb-1.5" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}<p class="mt-1 text-sm text-red-600">{{ field.errors.0 }}</p>{% endif %}
+                    {% if field.help_text %}<p class="mt-1 text-xs text-slate-500">{{ field.help_text }}</p>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% if show_role_permissions %}
+            {% include 'memberapp/member/_permission_matrix.html' %}
+            {% endif %}
+            <div class="flex flex-wrap gap-3 pt-5 mt-6 border-t border-slate-200">
+                <button type="submit" class="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-sm font-medium hover:opacity-90 transition">Save</button>
+                <a href="{% url 'memberapp:role_list' %}" class="inline-flex items-center justify-center px-5 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-700 text-sm font-medium hover:bg-slate-50 transition">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

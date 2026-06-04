@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+
+<div class="w-full mt-6 space-y-6">
+
+    <!-- 🔷 HEADER CARD -->
+    <div class="bg-gradient-to-br from-emerald-50 via-white to-green-50 
+                rounded-2xl shadow-sm border border-slate-200 px-6 py-5">
+
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+            <h1 class="text-2xl font-bold text-slate-800">
+                {{ title }}
+            </h1>
+
+            <div class="flex flex-wrap gap-2">
+                {% if list_url %}
+                <a href="{{ list_url }}"
+                   class="inline-flex items-center px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors">
+                    Back
+                </a>
+                {% endif %}
+                {% if can_view_history and history_url %}
+                <a href="{{ history_url }}"
+                   class="inline-flex items-center px-3 py-2 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 text-sm font-medium hover:bg-emerald-100 transition-colors">
+                    History
+                </a>
+                {% endif %}
+                {% if can_edit and update_url %}
+                <a href="{{ update_url }}"
+                   class="inline-flex items-center px-3 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors">
+                    Edit
+                </a>
+                {% endif %}
+                {% if can_delete and delete_url %}
+                <a href="{{ delete_url }}"
+                   class="inline-flex items-center px-3 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-colors">
+                    Delete
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- ✅ FIELDS (SMALL CARDS GRID) -->
+    {% if fields %}
+<div class="bg-gradient-to-br from-emerald-50 via-white to-green-50 
+            rounded-3xl shadow-lg border border-slate-200 overflow-hidden">
+
+    <!-- HEADER -->
+    <div class="px-6 py-4 border-b border-slate-200 
+                bg-gradient-to-r from-emerald-100 via-white to-green-100">
+
+        <h2 class="text-lg font-semibold text-slate-700">
+            Details
+        </h2>
+    </div>
+
+    <!-- FIELD GRID (3 columns on large screens) -->
+    <div class="p-4 sm:p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+        {% for field in fields %}
+        <div class="rounded-xl border border-slate-200/90 bg-white/70 p-4 shadow-sm hover:shadow-md transition-shadow">
+
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full shrink-0 bg-gradient-to-r from-emerald-500 to-green-500"></span>
+                {{ field.label }}
+            </div>
+
+            <div class="text-slate-800 font-semibold text-sm break-words">
+                {% if field.data %}
+                    {% for item, qty in field.data %}
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-medium mr-1.5 mb-1.5">
+                            {% if item.url %}
+                                <a href="{{ item.url }}" class="text-indigo-700 hover:text-indigo-900 hover:underline">
+                                    {{ item.name|default:item }}
+                                </a>
+                            {% else %}
+                                {{ item.name|default:item }}
+                            {% endif %}
+                            {% if qty > 1 %}
+                                <span class="ml-1 text-indigo-600 font-bold">× {{ qty }}</span>
+                            {% endif %}
+                        </span>
+                    {% empty %}
+                        —
+                    {% endfor %}
+                {% else %}
+                    {{ field.value|default:"—" }}
+                {% endif %}
+            </div>
+
+        </div>
+        {% endfor %}
+
+        </div>
+    </div>
+
+</div>
+{% endif %}
+
+
+
+    <!-- ✅ COMPONENTS (BIG CARD SECTION) -->
+    {% if components %}
+    <div class="bg-gradient-to-br from-indigo-50 via-white to-blue-50 
+                rounded-3xl shadow-lg border border-slate-200 overflow-hidden">
+
+        <div class="px-6 py-4 border-b border-slate-200 
+                    bg-gradient-to-r from-indigo-100 via-white to-blue-100">
+
+            <h2 class="text-lg font-semibold text-slate-700">
+                Components
+            </h2>
+        </div>
+
+        <div class="p-4 sm:p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+            {% for comp in components %}
+            <div class="rounded-xl border border-slate-200/90 bg-white/70 p-4 shadow-sm hover:shadow-md transition-shadow">
+
+                <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full shrink-0 bg-gradient-to-r from-indigo-500 to-blue-500"></span>
+                    {{ comp.label }}
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+
+                    {% for item, qty in comp.data %}
+                        <span class="inline-flex items-center px-3 py-1.5 rounded-xl 
+                                     bg-gradient-to-r from-slate-100 to-slate-200 
+                                     text-sm text-slate-700 font-medium 
+                                     shadow-sm">
+
+                            {{ item.name }}
+
+                            {% if qty > 1 %}
+                                <span class="ml-1 text-indigo-600 font-bold">× {{ qty }}</span>
+                            {% endif %}
+                        </span>
+                    {% empty %}
+                        <span class="text-slate-400 italic">Not Assigned</span>
+                    {% endfor %}
+
+                </div>
+
+            </div>
+            {% endfor %}
+
+            </div>
+        </div>
+
+    </div>
+    {% endif %}
+
+    {% if show_member_permissions %}
+    <section class="bg-gradient-to-br from-slate-50 via-white to-slate-50 rounded-3xl shadow-lg border border-slate-200 overflow-hidden px-6 py-6">
+        {% include 'memberapp/member/_permission_matrix.html' %}
+    </section>
+    {% endif %}
+
+
+    <!-- 🔙 BACK BUTTON -->
+    <div>
+        <a href="{{ list_url }}"
+           class="inline-flex items-center text-sm font-medium text-slate-600 
+                  hover:text-slate-800 transition-colors">
+            ← Back to list
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}

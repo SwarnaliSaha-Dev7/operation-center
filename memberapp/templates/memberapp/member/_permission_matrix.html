@@ -1,0 +1,71 @@
+{% if permission_matrix_rows %}
+<div class="{% if permission_matrix_help == 'view' %}{% else %}mt-8 pt-6 border-t border-slate-200 {% endif %}">
+    <h2 class="text-lg font-semibold text-slate-800 mb-3">Permissions</h2>
+    {% if permission_matrix_help == 'view' %}
+    <p class="text-sm text-slate-600 mb-4">Effective access for this member: direct permissions and permissions from <strong>roles</strong> (groups). View / Add / Edit / Delete reflect standard actions; <strong>Extra</strong> lists custom permissions (e.g. IT ticket queue).</p>
+    {% elif permission_matrix_help == 'edit' %}
+    <p class="text-sm text-slate-600 mb-4">Checked boxes show <strong>direct</strong> assignments only (not from roles). Set role permissions under <strong>Member → Roles</strong>. Assign roles on each member above. Edit maps to Django’s <code class="text-xs bg-slate-100 px-1 rounded">change</code> permission. Use <strong>Extra</strong> for custom rights such as managing the IT ticket queue.</p>
+    {% elif permission_matrix_help == 'role' %}
+    <p class="text-sm text-slate-600 mb-4">Permissions for this <strong>role</strong> apply to every member who has the role. Edit maps to Django’s <code class="text-xs bg-slate-100 px-1 rounded">change</code> permission. Use <strong>Extra</strong> for custom rights (e.g. IT ticket queue).</p>
+    {% else %}
+    <p class="text-sm text-slate-600 mb-4">Assign access by app and model. Edit maps to Django’s <code class="text-xs bg-slate-100 px-1 rounded">change</code> permission. <strong>Extra</strong> covers additional permissions defined on the model (e.g. IT ticket queue management).</p>
+    {% endif %}
+    <div class="table-responsive max-h-[28rem] rounded-lg border border-slate-200 shadow-inner">
+        <table class="min-w-full text-sm text-left border-collapse">
+            <thead class="sticky top-0 z-10 bg-slate-100 border-b border-slate-200">
+                <tr>
+                    <th scope="col" class="px-3 py-2.5 font-semibold text-slate-700 whitespace-nowrap">App</th>
+                    <th scope="col" class="px-3 py-2.5 font-semibold text-slate-700 whitespace-nowrap">Table</th>
+                    <th scope="col" class="px-2 py-2.5 font-semibold text-slate-700 text-center w-16">View</th>
+                    <th scope="col" class="px-2 py-2.5 font-semibold text-slate-700 text-center w-16">Add</th>
+                    <th scope="col" class="px-2 py-2.5 font-semibold text-slate-700 text-center w-16">Edit</th>
+                    <th scope="col" class="px-2 py-2.5 font-semibold text-slate-700 text-center w-16">Delete</th>
+                    <th scope="col" class="px-3 py-2.5 font-semibold text-slate-700 text-left min-w-[12rem] max-w-xs">Extra</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in permission_matrix_rows %}
+                <tr class="{{ row.group_row_class }} transition-colors border-b border-slate-200/40">
+                    <td class="px-3 py-2 text-slate-800 whitespace-nowrap">{{ row.app_name }}</td>
+                    <td class="px-3 py-2 text-slate-700">{{ row.table_name }}</td>
+                    <td class="px-2 py-2 text-center align-middle">
+                        {% if row.view %}
+                        <input type="checkbox" value="{{ row.view.pk }}" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500{% if permission_matrix_readonly %} opacity-90 cursor-default{% endif %}" {% if not permission_matrix_readonly %}name="user_perms"{% endif %} {% if permission_matrix_readonly %}disabled{% endif %} {% if row.view.pk in applied_permission_ids %}checked{% endif %} />
+                        {% else %}<span class="text-slate-300">—</span>{% endif %}
+                    </td>
+                    <td class="px-2 py-2 text-center align-middle">
+                        {% if row.add %}
+                        <input type="checkbox" value="{{ row.add.pk }}" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500{% if permission_matrix_readonly %} opacity-90 cursor-default{% endif %}" {% if not permission_matrix_readonly %}name="user_perms"{% endif %} {% if permission_matrix_readonly %}disabled{% endif %} {% if row.add.pk in applied_permission_ids %}checked{% endif %} />
+                        {% else %}<span class="text-slate-300">—</span>{% endif %}
+                    </td>
+                    <td class="px-2 py-2 text-center align-middle">
+                        {% if row.edit %}
+                        <input type="checkbox" value="{{ row.edit.pk }}" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500{% if permission_matrix_readonly %} opacity-90 cursor-default{% endif %}" {% if not permission_matrix_readonly %}name="user_perms"{% endif %} {% if permission_matrix_readonly %}disabled{% endif %} {% if row.edit.pk in applied_permission_ids %}checked{% endif %} />
+                        {% else %}<span class="text-slate-300">—</span>{% endif %}
+                    </td>
+                    <td class="px-2 py-2 text-center align-middle">
+                        {% if row.delete %}
+                        <input type="checkbox" value="{{ row.delete.pk }}" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500{% if permission_matrix_readonly %} opacity-90 cursor-default{% endif %}" {% if not permission_matrix_readonly %}name="user_perms"{% endif %} {% if permission_matrix_readonly %}disabled{% endif %} {% if row.delete.pk in applied_permission_ids %}checked{% endif %} />
+                        {% else %}<span class="text-slate-300">—</span>{% endif %}
+                    </td>
+                    <td class="px-3 py-2 align-middle text-left">
+                        {% if row.extras %}
+                        <div class="flex flex-col gap-2">
+                            {% for p in row.extras %}
+                            <label class="inline-flex items-start gap-2 text-xs text-slate-700 leading-snug cursor-pointer{% if permission_matrix_readonly %} cursor-default{% endif %}">
+                                <input type="checkbox" value="{{ p.pk }}" class="mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 shrink-0{% if permission_matrix_readonly %} opacity-90 cursor-default{% endif %}" {% if not permission_matrix_readonly %}name="user_perms"{% endif %} {% if permission_matrix_readonly %}disabled{% endif %} {% if p.pk in applied_permission_ids %}checked{% endif %} />
+                                <span>{{ p.name }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <span class="text-slate-300">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}

@@ -1,0 +1,18 @@
+{% comment %}Filter trigger — place before primary actions (e.g. Add). Modal lives in base.{% endcomment %}
+{% if show_global_filters %}
+{% with dp=gf.date_preset|default:'' df=gf.date_from|default:'' dt=gf.date_to|default:'' %}
+<div class="gf-filter-bar-inline shrink-0">
+    <button type="button" id="globalFilterOpen" class="gf-filter-open group relative inline-flex items-center gap-2 rounded-lg border border-slate-200/90 bg-white px-2.5 py-2 text-xs sm:text-sm font-semibold text-slate-800 shadow-sm transition-all hover:border-indigo-300 hover:bg-indigo-50/60 hover:shadow-md hover:text-indigo-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1">
+        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-inner">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            </svg>
+        </span>
+        <span class="hidden sm:inline">Filters</span>
+        {% if gf.team or gf.department or gf.designation or gf.member or dp or df or dt %}
+        <span class="gf-filter-dot absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-indigo-500 ring-2 ring-white" title="Filters active"></span>
+        {% endif %}
+    </button>
+</div>
+{% endwith %}
+{% endif %}

@@ -1,0 +1,16 @@
+services:
+  web:
+    image: ${ARTIFACTS_IMAGE}
+    volumes:
+      - .:/app
+    env_file: .env
+    # Do not hide migrate failures (|| true) — otherwise missing tables cause 500s at runtime.
+    command: sh -c "
+      python manage.py collectstatic --noinput --settings=root.settings 2>/dev/null || true &&
+      python manage.py migrate --noinput --settings=root.settings &&
+      python manage.py check_superuser --settings=root.settings 2>/dev/null || true &&
+      python manage.py runserver 0.0.0.0:9000 --insecure
+      "
+    ports:
+      - "9000:9000"
+    

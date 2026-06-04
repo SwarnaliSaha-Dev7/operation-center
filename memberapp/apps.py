@@ -1,0 +1,7 @@
+from django.apps import AppConfig
+
+
+class MemberappConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'memberapp'
+    verbose_name = 'Member'

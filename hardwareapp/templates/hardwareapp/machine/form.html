@@ -1,0 +1,375 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" crossorigin="anonymous">
+<style>
+.select2-container { width: 100% !important; min-width: 200px; }
+.select2-container .select2-selection--single { min-height: 38px; border-radius: 0.375rem; border-color: #cbd5e1; }
+.select2-container--default.select2-container--focus .select2-selection--single { border-color: #6366f1; }
+.machine-component-rows .component-row { margin-bottom: 0.5rem; }
+.machine-component-rows .component-row .component-qty { width: 5rem; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="w-full">
+    
+    <h1 class="text-2xl font-semibold text-slate-800 mb-5">
+        {{ title }}
+    </h1>
+
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden border-l-4 border-l-emerald-500">
+        
+        <form method="post" class="p-6" id="machine-form">
+            {% csrf_token %}
+
+            <!-- 🔥 BASIC FIELDS GRID -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 gap-y-6">
+
+                {% for field in form %}
+                {% if field.name in "name,code,description,team,member,operating_system,department" %}
+                
+                <div class="{% if field.errors %}has-error{% endif %}
+                            {% if field.name == 'description' %}lg:col-span-3{% endif %}"
+                     data-field-name="{{ field.name }}">
+
+                    <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                        {{ field.label }}
+                    </label>
+
+                    {{ field }}
+
+                    {% if field.errors %}
+                        <p class="mt-1 text-sm text-red-600">
+                            {{ field.errors.0 }}
+                        </p>
+                    {% endif %}
+
+                    {% if field.help_text %}
+                        <p class="mt-1 text-xs text-slate-500">
+                            {{ field.help_text }}
+                        </p>
+                    {% endif %}
+
+                </div>
+
+                {% endif %}
+                {% endfor %}
+
+            </div>
+            <!-- END GRID -->
+
+            <!-- 🔥 COMPONENTS SECTION -->
+            <div class="pt-6 mt-6 border-t border-slate-200">
+                
+                <h2 class="text-lg font-medium text-slate-800 mb-4">
+                    Components
+                </h2>
+
+                <p class="text-sm text-slate-500 mb-4">
+                    Add components for each type. You can add multiple rows (e.g. two RAM modules) and set quantity per row.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 gap-y-6">
+                    
+                    {% for key, label, required in component_types %}
+                    
+                    <div class="machine-component-section border border-slate-200 rounded-lg p-4 bg-slate-50/50" data-type="{{ key }}">
+                        
+                        <div class="flex items-center justify-between mb-3">
+                            
+                            <label class="text-sm font-medium text-slate-700">
+                                {{ label }}
+                                {% if required %}
+                                    <span class="text-red-500">*</span>
+                                {% endif %}
+                            </label>
+
+                            <button type="button"
+                                class="add-component-row inline-flex items-center px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-600 text-sm font-medium hover:bg-slate-50"
+                                data-type="{{ key }}">
+                                + Add More
+                            </button>
+
+                        </div>
+
+                        <div class="machine-component-rows" data-type="{{ key }}"></div>
+
+                        {% for field in form %}
+                            {% if field.name == key|add:"_entries" %}
+                                {{ field }}
+                            {% endif %}
+                        {% endfor %}
+
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+                <!-- Component Errors -->
+                {% for name, errs in form.errors.items %}
+                    {% if "_entries" in name %}
+                        <div class="mt-2 text-sm text-red-600">
+                            {{ errs|join:", " }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+
+            </div>
+
+            <!-- 🔥 BUTTONS -->
+            <div class="flex flex-wrap gap-3 pt-6 mt-6 border-t border-slate-200">
+                
+                {% if form.instance.pk %}
+                    {% if perms.hardwareapp.change_machinetable %}
+                    <button type="submit"
+                        class="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-sm font-medium hover:opacity-90 transition">
+                        Save
+                    </button>
+                    {% endif %}
+                {% else %}
+                    {% if perms.hardwareapp.add_machinetable %}
+                    <button type="submit"
+                        class="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-sm font-medium hover:opacity-90 transition">
+                        Save
+                    </button>
+                    {% endif %}
+                {% endif %}
+
+                <a href="{% url 'hardwareapp:machine_list' %}"
+                   class="inline-flex items-center justify-center px-5 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-700 text-sm font-medium hover:bg-slate-50 transition">
+                    Cancel
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js" crossorigin="anonymous"></script>
+<script>
+(function() {
+  var $ = window.jQuery || window.$;
+  if (!$ || typeof $.fn.select2 !== 'function') return;
+
+  var API_URL = '{{ machine_api_component_options_url|escapejs }}';
+   var componentTypes = [{% for key, label, required in component_types %}'{{ key|escapejs }}'{% if not forloop.last %}, {% endif %}{% endfor %}];
+  var optionsCache = {};
+  var OPTIONS_CACHE_KEY = '__all__';
+  var machineComponentTotals = {};
+  try {
+    machineComponentTotals = JSON.parse("{{ machine_component_totals_json|escapejs }}");
+  } catch (e) {}
+
+  function fetchOptions() {
+    if (optionsCache[OPTIONS_CACHE_KEY]) return Promise.resolve(optionsCache[OPTIONS_CACHE_KEY]);
+    return $.getJSON(API_URL).then(function(data) {
+      optionsCache[OPTIONS_CACHE_KEY] = data;
+      return data;
+    }).fail(function() {
+      return {};
+    });
+  }
+
+  function optionLabel(o, type) {
+    var t = o.text || '';
+    var rem = o.remaining;
+    if (rem != null && rem !== '') t += ' (' + rem + ' left)';
+    var onMachine = type && machineComponentTotals[type] && machineComponentTotals[type][o.id];
+    if (onMachine != null && onMachine > 0) t += ' (' + onMachine + ' on this machine)';
+    return t;
+  }
+
+  function getOtherRowsSum($row, type, componentId) {
+    var sum = 0;
+    var idStr = String(componentId);
+    var $container = $row.closest('.machine-component-rows');
+    $container.find('.component-row').each(function() {
+      var $r = $(this);
+      if ($r.is($row)) return;
+      if (String($r.find('.component-select').val()) === idStr) {
+        sum += parseInt($r.find('.component-qty').val(), 10) || 0;
+      }
+    });
+    return sum;
+  }
+
+  function getTotalMaxForComponent(type, componentId, remaining) {
+    var remainingNum = parseInt(remaining, 10) || 0;
+    var idKey = String(componentId);
+    var onMachine = (machineComponentTotals[type] && machineComponentTotals[type][idKey]) || 0;
+    return Math.max(1, remainingNum + onMachine);
+  }
+
+  function getMaxForRow($row, type, componentId, remaining) {
+    var totalMax = getTotalMaxForComponent(type, componentId, remaining);
+    var otherSum = getOtherRowsSum($row, type, componentId);
+    return Math.max(1, totalMax - otherSum);
+  }
+
+  function buildRowHtml(type, entry) {
+    var id = entry && entry.id ? entry.id : '';
+    var qty = entry && entry.qty != null ? entry.qty : 1;
+    var options = optionsCache[OPTIONS_CACHE_KEY];
+    var opts = (options && options[type]) || [];
+    var optionHtml = '<option value="">— Select —</option>';
+    opts.forEach(function(o) {
+      var sel = o.id == id ? ' selected' : '';
+      var rem = o.remaining != null ? o.remaining : '';
+      optionHtml += '<option value="' + (o.id || '') + '" data-remaining="' + rem + '"' + sel + '>' + optionLabel(o, type) + '</option>';
+    });
+    var maxAttr = '';
+    var maxVal = 0;
+    if (id) {
+      var chosen = opts.filter(function(o) { return o.id == id; })[0];
+      if (chosen) {
+        var onMachine = (machineComponentTotals[type] && machineComponentTotals[type][id]) || 0;
+        maxVal = Math.max(1, (chosen.remaining != null ? chosen.remaining : 0) + onMachine);
+        maxAttr = ' max="' + maxVal + '"';
+        if (qty > maxVal) qty = maxVal;
+      }
+    }
+    var onMachineLabel = '';
+    if (Object.keys(machineComponentTotals).length > 0) {
+      onMachineLabel = '<span class="component-on-machine-label text-xs text-slate-500">(assigned on this machine: ' + qty + ')</span>';
+    }
+    return (
+      '<div class="component-row flex flex-wrap gap-2 items-center">' +
+        '<select class="component-select w-full px-3 py-2 text-sm border border-slate-300 rounded-lg" data-type="' + type + '" style="min-width: 12rem;">' + optionHtml + '</select>' +
+        '<input type="number" class="component-qty w-full px-3 py-2 text-sm border border-slate-300 rounded-lg" min="1" value="' + qty + '" placeholder="Qty" style="width: 5rem;"' + maxAttr + '>' +
+        onMachineLabel +
+        '<span class="component-remaining text-xs text-slate-500"></span>' +
+        '<button type="button" class="remove-row rounded border border-slate-300 px-2 py-1 text-sm text-slate-600 hover:bg-slate-100">Remove</button>' +
+      '</div>'
+    );
+  }
+
+  function renderSection(type, entries) {
+    var $section = $('.machine-component-section[data-type="' + type + '"]');
+    var $rows = $section.find('.machine-component-rows');
+    $rows.empty();
+    (entries || []).forEach(function(entry) {
+      $rows.append(buildRowHtml(type, entry));
+    });
+    $rows.find('.component-select').each(function() {
+      $(this).select2({ width: '100%', placeholder: '— Select —' });
+      updateQtyFromSelect($(this).closest('.component-row'));
+    });
+    var $first = $rows.find('.component-row').first();
+    if ($first.length) updateAllMaxInSection($first);
+  }
+
+  function serializeSection(type) {
+    var $section = $('.machine-component-section[data-type="' + type + '"]');
+    var entries = [];
+    $section.find('.component-row').each(function() {
+      var $row = $(this);
+      var id = $row.find('.component-select').val();
+      var qty = parseInt($row.find('.component-qty').val(), 10) || 1;
+      if (id) entries.push({ id: parseInt(id, 10), qty: Math.max(1, qty) });
+    });
+    return entries;
+  }
+
+  function syncHiddenInputs() {
+    componentTypes.forEach(function(type) {
+      var entries = serializeSection(type);
+      $('#id_' + type + '_entries').val(JSON.stringify(entries));
+    });
+  }
+
+  function loadInitialEntries() {
+    componentTypes.forEach(function(type) {
+      var $hidden = $('#id_' + type + '_entries');
+      var raw = $hidden.val() || '[]';
+      var entries = [];
+      try {
+        entries = JSON.parse(raw);
+      } catch (e) {}
+      if (!Array.isArray(entries)) entries = [];
+      renderSection(type, entries);
+    });
+  }
+
+  function updateQtyFromSelect($row) {
+    var $sel = $row.find('.component-select');
+    var $qty = $row.find('.component-qty');
+    var $rem = $row.find('.component-remaining');
+    var opt = $sel.find('option:selected');
+    var type = $sel.data('type');
+    var componentId = opt.val();
+    var remaining = opt.data('remaining');
+    if (!opt.length || !componentId) {
+      $qty.removeAttr('max');
+      $rem.text('');
+      return;
+    }
+    var rowMax = getMaxForRow($row, type, componentId, remaining);
+    var totalMax = getTotalMaxForComponent(type, componentId, remaining);
+    $qty.attr('max', rowMax);
+    var cur = parseInt($qty.val(), 10) || 1;
+    if (cur > rowMax) $qty.val(rowMax);
+    $rem.text('(max ' + totalMax + ')');
+  }
+
+  function updateAllMaxInSection($row) {
+    var $container = $row.closest('.machine-component-rows');
+    $container.find('.component-row').each(function() {
+      updateQtyFromSelect($(this));
+    });
+  }
+
+  $(function() {
+    // Operating system multi-select
+    $('#id_operating_system').select2({ width: '100%', placeholder: 'Select OS…', allowClear: true });
+
+    fetchOptions().then(function() {
+      loadInitialEntries();
+    });
+
+    $(document).on('change', '.component-select', function() {
+      var $row = $(this).closest('.component-row');
+      updateQtyFromSelect($row);
+      updateAllMaxInSection($row);
+    });
+
+    $(document).on('input change', '.component-qty', function() {
+      var $row = $(this).closest('.component-row');
+      var $qty = $(this);
+      var maxVal = parseInt($qty.attr('max'), 10);
+      if (!isNaN(maxVal)) {
+        var cur = parseInt($qty.val(), 10) || 0;
+        if (cur > maxVal) $qty.val(maxVal);
+      }
+      var $lbl = $row.find('.component-on-machine-label');
+      if ($lbl.length) $lbl.text('(assigned on this machine: ' + ($qty.val() || '0') + ')');
+      updateAllMaxInSection($row);
+    });
+
+    $(document).on('click', '.add-component-row', function() {
+      var type = $(this).data('type');
+      var $rows = $('.machine-component-section[data-type="' + type + '"] .machine-component-rows');
+      var $new = $(buildRowHtml(type, { id: '', qty: 1 }));
+      $rows.append($new);
+      $new.find('.component-select').select2({ width: '100%', placeholder: '— Select —' });
+    });
+
+    $(document).on('click', '.remove-row', function() {
+      var $row = $(this).closest('.component-row');
+      var $section = $row.closest('.machine-component-rows');
+      $row.remove();
+      updateAllMaxInSection($section.find('.component-row').first());
+    });
+
+    $('#machine-form').on('submit', function() {
+      syncHiddenInputs();
+    });
+  });
+})();
+</script>
+{% endblock %}

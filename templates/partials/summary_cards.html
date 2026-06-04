@@ -1,0 +1,14 @@
+{% if summary_cards %}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    {% for card in summary_cards %}
+    <div class="relative rounded-xl shadow-lg p-6 transition-all duration-300 {{ card.color }}">
+        <div class="flex items-center justify-between gap-3">
+            <div>
+                <p class="text-sm font-semibold opacity-80 mb-2 uppercase tracking-wide text-slate-700">{{ card.label }}</p>
+                <p class="text-4xl font-bold text-slate-900">{{ card.value }}</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}

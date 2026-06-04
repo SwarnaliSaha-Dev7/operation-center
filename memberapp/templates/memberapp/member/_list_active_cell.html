@@ -1,0 +1,15 @@
+{% if can_toggle %}
+<label class="inline-flex items-center gap-2.5 cursor-pointer select-none">
+    <input type="checkbox"
+           class="peer sr-only js-member-active-toggle"
+           role="switch"
+           data-post-url="{% url 'memberapp:member_set_active' pk %}"
+           {% if is_active %}checked{% endif %}
+           aria-checked="{% if is_active %}true{% else %}false{% endif %}"
+           aria-label="Toggle active for this member" />
+    <span class="relative inline-block h-5 w-9 shrink-0 rounded-full bg-slate-300 transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-amber-500 peer-focus-visible:ring-offset-1 peer-checked:bg-emerald-500 after:absolute after:top-0.5 after:left-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow after:transition-transform after:duration-200 peer-checked:after:translate-x-4" aria-hidden="true"></span>
+    <span class="text-xs font-medium text-slate-700 js-member-active-text">{% if is_active %}Active{% else %}Inactive{% endif %}</span>
+</label>
+{% else %}
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {% if is_active %}bg-emerald-100 text-emerald-800{% else %}bg-slate-100 text-slate-600{% endif %}">{% if is_active %}Active{% else %}Inactive{% endif %}</span>
+{% endif %}

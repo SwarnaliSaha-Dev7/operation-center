@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="w-full max-w-none space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h1 class="text-2xl font-semibold text-slate-800">{{ title }}</h1>
+        {% if notification_unread_count %}
+        <form method="post" action="{% url 'notificationapp:notification_mark_all_read' %}" class="shrink-0">
+            {% csrf_token %}
+            <button type="submit" class="px-4 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 text-sm font-medium hover:bg-slate-50">Mark all read</button>
+        </form>
+        {% endif %}
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-indigo-500 divide-y divide-slate-100">
+        {% for n in notifications %}
+        <a href="{% url 'notificationapp:notification_open' n.pk %}" class="block px-5 py-4 hover:bg-slate-50/80 transition-colors {% if not n.read_at %}bg-indigo-50/40{% endif %}">
+            <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                    <p class="font-medium text-slate-800">{{ n.title }}</p>
+                    {% if n.body %}<p class="text-sm text-slate-600 mt-1 whitespace-pre-wrap">{{ n.body }}</p>{% endif %}
+                    <p class="text-xs text-slate-500 mt-2">{{ n.created_at|date:"M j, Y H:i" }}{% if n.actor %} · from {{ n.actor.get_full_name|default:n.actor.username }}{% endif %}</p>
+                </div>
+                {% if not n.read_at %}
+                <span class="shrink-0 h-2.5 w-2.5 rounded-full bg-indigo-500 mt-1.5" title="Unread"></span>
+                {% endif %}
+            </div>
+        </a>
+        {% empty %}
+        <p class="px-5 py-12 text-center text-slate-500 text-sm">No notifications yet.</p>
+        {% endfor %}
+    </div>
+    {% if is_paginated %}
+    <nav class="flex justify-center gap-2 text-sm">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50">Previous</a>
+        {% endif %}
+        <span class="px-3 py-1.5 text-slate-600">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50">Next</a>
+        {% endif %}
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+# Env and secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+
+# Django
+*.sqlite3
+*.sqlite3-*
+logs/
+media/
+*.log
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Testing / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Build / dist
+dist/
+build/
+*.egg-info/
+*.egg
+
+
+# Migrations
+#**/migrations/*
+#!**/migrations/__init__.py
+
+# Media
+media/
+postgres_data/
+# Collected static (see STATIC_ROOT in settings); project source assets live in /static/
+static_collected/
+static/
+Jenkinsfile

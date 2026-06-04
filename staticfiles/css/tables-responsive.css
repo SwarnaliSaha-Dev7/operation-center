@@ -1,0 +1,44 @@
+/* Global responsive tables — main uses min-w-0 in base.html (flex overflow fix). */
+
+/* DataTables: wrapper must not expand past the viewport */
+.dataTables_wrapper {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.dataTables_wrapper .dataTables_scroll {
+  max-width: 100%;
+}
+
+.dataTables_wrapper .dataTables_scrollHeadInner,
+.dataTables_wrapper .dataTables_scrollBody {
+  min-width: 0;
+}
+
+.dataTables_wrapper .dataTables_scrollBody {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Top controls wrap on narrow screens */
+@media (max-width: 640px) {
+  .dataTables_wrapper .grid.grid-cols-3 {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .dataTables_wrapper .dataTables_filter input {
+    width: 100% !important;
+    max-width: 100%;
+  }
+}
+
+/* Generic scroll container for plain HTML tables */
+.table-responsive {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}

@@ -1,0 +1,90 @@
+{# Full dashboard + AJAX partial (_fragment=1). Compact, modern layout. #}
+<div class="dash-fragment space-y-3">
+
+    {% if dashboard_cards %}
+    <section class="dash-metrics" aria-label="Summary metrics">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-6 gap-1 sm:gap-1.5">
+            {% for card in dashboard_cards %}
+            <a href="{% url card.url %}" class="dash-metric-card group block min-h-0 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 rounded-lg">
+                <article class="dash-metric-inner relative flex h-full min-h-[3.25rem] items-center gap-2 overflow-hidden rounded-lg border border-slate-200/80 bg-white px-2 py-1.5 shadow-sm ring-1 ring-slate-900/[0.03] transition-all duration-150 group-hover:border-indigo-200/90 group-hover:shadow group-hover:ring-indigo-500/10 {{ card.color }}">
+                    <div class="min-w-0 flex-1 py-0.5">
+                        <p class="truncate text-[9px] font-semibold uppercase leading-tight tracking-wider text-slate-600/95">{{ card.label }}</p>
+                        <p class="mt-0.5 text-lg font-bold tabular-nums leading-none tracking-tight text-slate-900 sm:text-xl">{{ card.value }}</p>
+                    </div>
+                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white/90 shadow-sm ring-1 ring-slate-200/50 transition-colors duration-150 group-hover:ring-indigo-200/60 [&_svg]:h-[1.1rem] [&_svg]:w-[1.1rem] [&_svg]:max-h-[1.1rem] [&_svg]:max-w-[1.1rem]">
+                        {{ card.icon|safe }}
+                    </div>
+                </article>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if not dashboard_cards and not dashboard_has_inventory %}
+    <div class="dash-empty rounded-xl border border-dashed border-slate-200/90 bg-gradient-to-br from-slate-50 to-slate-100/80 px-3 py-5 text-center sm:px-5">
+        <p class="text-xs sm:text-sm leading-snug text-slate-600">No dashboard sections are available for your account. Ask an administrator to grant <strong class="font-semibold text-slate-800">view</strong> permission on the apps you need.</p>
+    </div>
+    {% endif %}
+
+    {% if dashboard_has_inventory %}
+    <section class="dash-inventory overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-sm ring-1 ring-slate-900/[0.04]" aria-label="Component inventory totals">
+        <header class="dash-inventory-head flex flex-col gap-0.5 border-b border-slate-800/10 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-3 py-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+            <div class="flex items-center gap-1.5">
+                <span class="flex h-6 w-6 items-center justify-center rounded-md bg-white/10 text-white" aria-hidden="true">
+                    <svg class="h-3.5 w-3.5 opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                </span>
+                <div>
+                    <h2 class="text-xs font-semibold tracking-tight text-white">Component totals</h2>
+                    <p class="text-[10px] leading-tight text-slate-400">
+                        {% if gf_team_id %}<span class="text-indigo-300">One team</span>{% else %}<span>All teams</span>{% endif %}
+                        <span class="text-slate-500"> · </span>
+                        {% if gf_date_from and gf_date_to %}
+                        <span class="text-slate-300">{{ gf_date_from|date:"M j" }} – {{ gf_date_to|date:"M j, Y" }}</span>
+                        {% else %}
+                        <span>All dates</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </header>
+
+        <div class="dash-inv-body bg-slate-50/50 p-1.5 sm:p-2">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1.5 sm:gap-2">
+                {% for key, label, total_stock, total_assign, total_remain, total_issue, url in dashboard_inventory_rows %}
+                <a href="{% url url %}" class="dash-inv-tile group block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1">
+                    <article class="relative overflow-hidden rounded-lg border bg-white p-2 shadow-sm transition-all duration-200 group-hover:border-indigo-300/80 group-hover:shadow-md
+                        {% if total_remain <= low_stock_threshold %}border-red-200/90 group-hover:bg-red-50/80{% else %}border-slate-200/90 group-hover:bg-white{% endif %}">
+                        <div class="mb-1.5 flex items-start justify-between gap-1 border-b border-slate-100 pb-1.5">
+                            <h3 class="text-[11px] font-semibold leading-tight text-slate-800 line-clamp-2">{{ label }}</h3>
+                            {% if total_remain <= low_stock_threshold %}
+                            <span class="shrink-0 rounded px-1 py-px text-[8px] font-bold uppercase tracking-wide text-red-700 bg-red-100">Low</span>
+                            {% endif %}
+                        </div>
+                        <div class="grid grid-cols-4 gap-1 text-center">
+                            <div class="rounded bg-slate-50/80 py-0.5">
+                                <div class="text-[8px] font-medium uppercase tracking-wide text-slate-400">Stock</div>
+                                <div class="text-xs font-semibold tabular-nums text-slate-800">{{ total_stock }}</div>
+                            </div>
+                            <div class="rounded bg-slate-50/80 py-0.5">
+                                <div class="text-[8px] font-medium uppercase tracking-wide text-slate-400">Assign</div>
+                                <div class="text-xs font-semibold tabular-nums text-slate-800">{{ total_assign }}</div>
+                            </div>
+                            <div class="rounded py-0.5 {% if total_remain <= low_stock_threshold %}bg-rose-200/90{% else %}bg-emerald-50/80{% endif %}">
+                                <div class="text-[8px] font-medium uppercase tracking-wide {% if total_remain <= low_stock_threshold %}text-red-400{% else %}text-emerald-600/80{% endif %}">Remain</div>
+                                <div class="text-xs font-bold tabular-nums {% if total_remain <= low_stock_threshold %}text-red-600{% else %}text-emerald-700{% endif %}">{{ total_remain }}</div>
+                            </div>
+                            <div class="rounded bg-rose-200/90 py-0.5">
+                                <div class="text-[8px] font-medium uppercase tracking-wide text-rose-400">Issue</div>
+                                <div class="text-xs font-semibold tabular-nums text-rose-600">{{ total_issue }}</div>
+                            </div>
+                        </div>
+                    </article>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+</div>

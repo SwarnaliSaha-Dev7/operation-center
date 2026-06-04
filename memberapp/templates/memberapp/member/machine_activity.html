@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+
+<div class="w-full mt-6 space-y-4 max-w-none">
+    <div class="bg-gradient-to-br from-sky-50 via-white to-indigo-50 rounded-2xl shadow-sm border border-slate-200 px-5 py-4">
+        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-800">{{ title }}</h1>
+                <p class="text-sm text-slate-600 mt-1">{{ member_user.username }}{% if member_user.employee_id %} · {{ member_user.employee_id }}{% endif %}</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <a href="{{ list_url }}" class="inline-flex items-center px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors">Members</a>
+                <a href="{{ detail_url }}" class="inline-flex items-center px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors">Profile</a>
+            </div>
+        </div>
+    </div>
+
+    {# Assigned machines — placed first so it is easy to find #}
+    <section class="rounded-2xl border-2 border-indigo-200 bg-gradient-to-b from-indigo-50/90 to-white shadow-md overflow-hidden" aria-labelledby="assigned-machines-heading">
+        <div class="px-4 py-3 sm:px-5 border-b border-indigo-100/80 bg-indigo-600/[0.07]">
+            <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
+                <div>
+                    <h2 id="assigned-machines-heading" class="text-lg font-bold text-slate-900 tracking-tight">Machines assigned to this member</h2>
+                    <p class="text-xs text-slate-600 mt-1 max-w-2xl leading-snug">Current assignee on each machine below — <em>View</em> / <em>History</em> from the buttons.</p>
+                </div>
+                {% if assigned_machines %}
+                <span class="inline-flex items-center justify-center rounded-full bg-indigo-600 px-3 py-1 text-sm font-semibold text-white tabular-nums shadow-sm">{{ assigned_machines|length }} {% if assigned_machines|length == 1 %}machine{% else %}machines{% endif %}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if assigned_machines %}
+        <div class="divide-y divide-slate-200/90">
+            {% for row in assigned_machines %}
+            {% with m=row.machine %}
+            <div class="px-3 py-3 sm:px-4 bg-white/80">
+                <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-2 mb-3">
+                    <div class="min-w-0 space-y-2">
+                        <div>
+                            <p class="text-[10px] font-semibold uppercase tracking-wide text-indigo-600">Machine name</p>
+                            {% if perms.hardwareapp.view_machinetable %}
+                            <p class="mt-0.5 text-base font-bold text-slate-900 leading-tight">
+                                <a href="{% url 'hardwareapp:machine_detail' m.pk %}" class="text-indigo-700 hover:text-indigo-900 hover:underline">{{ m.name|default:m.code|default:"Unnamed machine" }}</a>
+                            </p>
+                            {% else %}
+                            <p class="mt-0.5 text-base font-bold text-slate-900 leading-tight">{{ m.name|default:m.code|default:"Unnamed machine" }}</p>
+                            {% endif %}
+                        </div>
+                        <dl class="flex flex-row gap-x-6 text-xs sm:text-sm">
+                            <div>
+                                <dt class="text-slate-500">Asset / code</dt>
+                                <dd class="font-mono text-slate-900">{{ m.code|default:"—" }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-slate-500">Team</dt>
+                                <dd class="text-slate-900">{{ m.team.name|default:"—" }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-slate-500">Department</dt>
+                                <dd class="text-slate-900">{{ m.department.name|default:"—" }}</dd>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <dt class="text-slate-500">Operating system</dt>
+                                <dd class="text-slate-900">{{ row.os_display }}</dd>
+                            </div>
+                        </dl>
+                    </div>
+                    {% if perms.hardwareapp.view_machinetable %}
+                    <div class="flex flex-wrap gap-1.5 shrink-0">
+                        <a href="{% url 'hardwareapp:machine_detail' m.pk %}" class="inline-flex items-center justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors">View machine</a>
+                        <a href="{% url 'hardwareapp:machine_history' m.pk %}" class="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-50 transition-colors">History</a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-2">Hardware on this machine</p>
+                    {% if row.hardware_part_cards %}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2.5">
+                        {% for part in row.hardware_part_cards %}
+                        <article class="rounded-lg border border-slate-200 bg-white shadow-sm flex flex-col min-w-0 overflow-hidden ring-1 ring-slate-900/[0.04]">
+                            <header class="px-3 py-2 border-b border-indigo-100 bg-gradient-to-r from-indigo-50 to-white">
+                                <h3 class="text-[11px] font-bold text-indigo-900 uppercase tracking-wide leading-tight">{{ part.section }}</h3>
+                            </header>
+                            <dl class="px-3 py-2.5 space-y-2 text-xs sm:text-sm bg-white">
+                                {% for f in part.fields %}
+                                <div class="grid grid-cols-1 min-[380px]:grid-cols-[minmax(7rem,40%)_1fr] gap-x-2 gap-y-0.5 border-b border-slate-100 last:border-0 pb-2 last:pb-0">
+                                    <dt class="text-slate-500 font-medium leading-snug">{{ f.label }}</dt>
+                                    <dd class="text-slate-900 leading-snug break-words">{{ f.value }}</dd>
+                                </div>
+                                {% endfor %}
+                            </dl>
+                        </article>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="rounded-lg border border-dashed border-slate-200 bg-slate-50/80 px-3 py-2.5 text-center text-xs text-slate-500">No hardware linked to this machine in the database.</div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endwith %}
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="px-4 py-8 text-center bg-white/60">
+            <p class="text-sm font-semibold text-slate-800">No machines assigned</p>
+            <p class="text-xs text-slate-600 mt-1 max-w-md mx-auto leading-snug">Set the assignee on each machine under Hardware → Machines.</p>
+        </div>
+        {% endif %}
+    </section>
+
+    <p class="text-sm text-slate-600 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+        Hardware and OS events are tied to this member when they were the machine’s <strong>assignee at save time</strong> (newer logs only). Assignment rows use all machine assignment changes involving this user. Oldest data may not include assignee attribution.
+    </p>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Systems now</div>
+            <div class="text-2xl font-bold text-slate-800 mt-1">{{ stats.current_systems }}</div>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Machines touched</div>
+            <div class="text-2xl font-bold text-slate-800 mt-1">{{ stats.unique_machines_ever }}</div>
+            <p class="text-xs text-slate-500 mt-1">Current + ever in assignment history</p>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Assignment events</div>
+            <div class="text-2xl font-bold text-slate-800 mt-1">{{ stats.assignment_events }}</div>
+            <p class="text-xs text-slate-500 mt-1">Any change involving this user</p>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Received / Released</div>
+            <div class="text-lg font-bold text-slate-800 mt-1">{{ stats.times_received_machine }} / {{ stats.times_released_machine }}</div>
+            <p class="text-xs text-slate-500 mt-1">Times got a machine / lost or reassigned away</p>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Upgrades</div>
+            <div class="text-2xl font-bold text-emerald-700 mt-1">{{ stats.hardware_upgrade }}</div>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Downgrades</div>
+            <div class="text-2xl font-bold text-rose-700 mt-1">{{ stats.hardware_downgrade }}</div>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Mixed / Replacement</div>
+            <div class="text-lg font-bold text-slate-800 mt-1">{{ stats.hardware_mixed }} / {{ stats.hardware_replacement }}</div>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Initial HW / OS logs</div>
+            <div class="text-lg font-bold text-slate-800 mt-1">{{ stats.hardware_initial }} / {{ stats.os_events_as_assignee }}</div>
+        </div>
+    </div>
+
+    {% if not timeline %}
+    <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        No assignment, OS, or hardware change events in the timeline yet. Activity appears here after machines are updated while this member is the assignee.
+    </div>
+    {% else %}
+
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 bg-slate-50">
+            <h2 class="text-lg font-semibold text-slate-800">Date-wise activity</h2>
+            <p class="text-sm text-slate-500 mt-0.5">Newest first</p>
+        </div>
+        <ul class="divide-y divide-slate-100">
+            {% for e in timeline %}
+            <li class="px-6 py-4 hover:bg-slate-50/80 transition-colors">
+                <div class="flex flex-col sm:flex-row sm:items-start gap-3">
+                    <div class="shrink-0 mt-0.5">
+                        {% if e.event_type == 'member_changed' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">Assignment</span>
+                        {% elif e.event_type == 'os_changed' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800">OS</span>
+                        {% elif e.metadata.change_tone == 'upgrade' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">Upgrade</span>
+                        {% elif e.metadata.change_tone == 'downgrade' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-800">Downgrade</span>
+                        {% elif e.metadata.change_tone == 'mixed' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-900">Mixed</span>
+                        {% elif e.metadata.change_tone == 'replacement' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-100 text-sky-800">Replacement</span>
+                        {% elif e.metadata.change_tone == 'initial' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-violet-100 text-violet-800">Initial HW</span>
+                        {% else %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-violet-100 text-violet-800">Hardware</span>
+                        {% endif %}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-sm text-slate-600">
+                            {% if perms.hardwareapp.view_machinetable %}
+                            <a href="{% url 'hardwareapp:machine_history' e.machine_id %}" class="font-semibold text-indigo-700 hover:underline">{{ e.machine.name|default:e.machine.code|default:"Machine" }}</a>
+                            {% else %}
+                            <span class="font-semibold text-slate-800">{{ e.machine.name|default:e.machine.code|default:"Machine" }}</span>
+                            {% endif %}
+                            <span class="text-slate-400">·</span>
+                            <span class="font-mono text-xs">{{ e.machine.code|default:"—" }}</span>
+                        </p>
+                        <p class="text-slate-800 font-medium mt-1">{{ e.summary }}</p>
+                        <p class="text-xs text-slate-500 mt-1">
+                            {{ e.created_at|date:"M j, Y H:i" }}
+                            {% if e.created_by %} · {{ e.created_by.get_full_name|default:e.created_by.username }}{% endif %}
+                        </p>
+                        {% if e.event_type == 'components_updated' and e.metadata.diff %}
+                        <pre class="mt-3 text-xs text-slate-700 bg-slate-50 rounded-lg p-3 overflow-x-auto whitespace-pre-wrap font-mono border border-slate-200">{{ e.metadata.diff }}</pre>
+                        {% endif %}
+                    </div>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

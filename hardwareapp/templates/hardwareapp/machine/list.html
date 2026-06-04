@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ title }}{% endblock %}
+{% block extra_css %}
+<link href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" rel="stylesheet" crossorigin="anonymous">
+<link rel="stylesheet" href="{% static 'css/datatable.css' %}">
+{% endblock %}
+{% block content %}
+
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <h1 class="text-2xl font-semibold text-slate-800">{{ title }}</h1>
+    <div class="flex flex-wrap items-center gap-3">
+        {% if show_global_filters %}
+        {% include 'partials/global_filter_bar.html' %}
+        {% endif %}
+        <!-- {% if perms.hardwareapp.view_machinetable %}
+        <button type="button" id="open-analytics-dashboard" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            Analytics Dashboard
+        </button>
+        {% endif %} -->
+        {% if perms.hardwareapp.add_machinetable %}
+        <a href="{% url 'hardwareapp:machine_create' %}" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors shadow-sm">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Add Machine
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% include 'hardwareapp/partials/hardware_summary_cards.html' %}
+
+<div id="analytics-dashboard-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 p-4" aria-hidden="true">
+    <div class="bg-white rounded-xl shadow-xl max-w-6xl w-full max-h-[90vh] flex flex-col">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200">
+            <!-- <h2 class="text-lg font-semibold text-slate-800">Component Analytics Dashboard</h2> -->
+            <button type="button" id="close-analytics-dashboard" class="p-2 rounded-lg text-slate-500 hover:bg-slate-100" aria-label="Close">&times;</button>
+        </div>
+        <iframe id="analytics-dashboard-iframe" src="about:blank" class="flex-1 w-full min-h-[70vh] border-0 rounded-b-xl"></iframe>
+    </div>
+</div>
+<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden border-l-4 border-l-emerald-500 max-h-[100vh] flex flex-col min-w-0 w-full max-w-full">
+    <div class="flex-1 min-h-0 min-w-0 overflow-x-auto overflow-y-auto">
+        <table id="machineTable" class="min-w-full divide-y divide-slate-200 display" data-server-side="true" data-team-filter="true" data-ajax-url="{% url 'hardwareapp:machine_list_data' %}">
+            <thead class="sticky top-0 z-10 bg-white border-b border-slate-200 shadow-sm">
+                <tr>
+                    {% for col in table_columns %}
+                    <th{% if forloop.last %} class="text-right"{% endif %}>{{ col }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js" crossorigin="anonymous"></script>
+<script src="{% static 'js/datatable/common/datatable-core.js' %}"></script>
+<script src="{% static 'js/datatable/hardwareapp/datatable-hardware-modals.js' %}"></script>
+<script>
+(function() {
+  var modal = document.getElementById('analytics-dashboard-modal');
+  var iframe = document.getElementById('analytics-dashboard-iframe');
+  var openBtn = document.getElementById('open-analytics-dashboard');
+  var closeBtn = document.getElementById('close-analytics-dashboard');
+  if (openBtn && modal && iframe) {
+    openBtn.addEventListener('click', function() {
+      iframe.src = "{% url 'dashboardapp:Dashboard' %}";
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+    });
+  }
+  if (closeBtn && modal) {
+    closeBtn.addEventListener('click', function() {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.body.style.overflow = '';
+      if (iframe) iframe.src = 'about:blank';
+    });
+  }
+  if (modal) {
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.body.style.overflow = '';
+        if (iframe) iframe.src = 'about:blank';
+      }
+    });
+  }
+})();
+</script>
+{% endblock %}

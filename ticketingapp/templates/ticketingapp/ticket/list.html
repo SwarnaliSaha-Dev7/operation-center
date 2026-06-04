@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ title }}{% endblock %}
+{% block extra_css %}
+<link href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" rel="stylesheet" crossorigin="anonymous">
+<link rel="stylesheet" href="{% static 'css/datatable.css' %}">
+{% endblock %}
+{% block content %}
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <div>
+        <h1 class="text-2xl font-semibold text-slate-800">{{ title }}</h1>
+        <p class="text-sm text-slate-600 mt-1">
+            {% if is_it_queue %}
+            <span class="text-indigo-700 font-medium">IT queue</span> — all tickets. Only IT can take and resolve; members see tickets they raised or that are assigned to them.
+            {% else %}
+            Tickets you raised or that are assigned to you as a member.
+            {% endif %}
+        </p>
+    </div>
+    <div class="flex flex-wrap items-center gap-3 shrink-0">
+        {% if show_global_filters %}
+        {% include 'partials/global_filter_bar.html' %}
+        {% endif %}
+        {% if perms.ticketingapp.add_ticket %}
+        <a href="{% url 'ticketingapp:ticket_create' %}" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm shrink-0">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            New ticket
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+{% include 'partials/summary_cards.html' %}
+
+<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden border-l-4 border-l-indigo-500 max-h-[100vh] flex flex-col min-w-0 w-full max-w-full">
+    <div class="flex-1 min-h-0 min-w-0 overflow-x-auto overflow-y-auto">
+        <table id="ticketTable" class="min-w-full divide-y divide-slate-200 display" data-server-side="true" data-all-columns-interactive="true" data-initial-order-col="7" data-initial-order-dir="desc" data-ajax-url="{% url 'ticketingapp:ticket_list_data' %}">
+            <caption class="caption-top text-left text-sm font-semibold text-slate-800 py-2 px-1 border-b border-slate-100 mb-0">IT tickets</caption>
+            <thead class="sticky top-0 z-10 bg-white border-b border-slate-200 shadow-sm">
+                <tr>
+                    {% for col in table_columns %}
+                    <th{% if forloop.last %} class="text-right"{% endif %}>{{ col }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js" crossorigin="anonymous"></script>
+<script src="{% static 'js/datatable/common/datatable-core.js' %}"></script>
+{% endblock %}

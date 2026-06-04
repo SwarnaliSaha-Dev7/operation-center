@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+
+<div class="w-full max-w-none animate-fade-in">
+
+    <!-- HEADER -->
+<div class="mb-4 flex items-center justify-between flex-wrap gap-2 sm:gap-3">
+
+    <!-- LEFT SIDE : ICON + TITLE -->
+    <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+
+        <!-- ICON -->
+        <div
+            class="w-10 h-10 shrink-0 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md hover:scale-105 transition-transform duration-300">
+
+            <svg viewBox="-2.4 -2.4 28.80 28.80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M9 12H4.6C4.03995 12 3.75992 12 3.54601 12.109C3.35785 12.2049 3.20487 12.3578 3.10899 12.546C3 12.7599 3 13.0399 3 13.6V19.4C3 19.9601 3 20.2401 3.10899 20.454C3.20487 20.6422 3.35785 20.7951 3.54601 20.891C3.75992 21 4.03995 21 4.6 21H9M9 21H15M9 21L9 8.6C9 8.03995 9 7.75992 9.10899 7.54601C9.20487 7.35785 9.35785 7.20487 9.54601 7.10899C9.75992 7 10.0399 7 10.6 7H13.4C13.9601 7 14.2401 7 14.454 7.10899C14.6422 7.20487 14.7951 7.35785 14.891 7.54601C15 7.75992 15 8.03995 15 8.6V21M15 21H19.4C19.9601 21 20.2401 21 20.454 20.891C20.6422 20.7951 20.7951 20.6422 20.891 20.454C21 20.2401 21 19.9601 21 19.4V4.6C21 4.03995 21 3.75992 20.891 3.54601C20.7951 3.35785 20.6422 3.20487 20.454 3.10899C20.2401 3 19.9601 3 19.4 3H16.6C16.0399 3 15.7599 3 15.546 3.10899C15.3578 3.20487 15.2049 3.35785 15.109 3.54601C15 3.75992 15 4.03995 15 4.6V8"
+                    stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                </path>
+            </svg>
+
+        </div>
+
+        <!-- TITLE -->
+        <div class="min-w-0">
+            <h1
+                class="text-2xl sm:text-3xl font-bold tracking-tight bg-gradient-to-r from-slate-900 via-blue-600 to-slate-700 bg-clip-text text-transparent">
+                Welcome {{ user.first_name | default:user.username }}
+            </h1>
+
+            <p class="text-slate-500 text-xs sm:text-sm flex items-center gap-1.5 mt-0.5">
+
+                <span class="relative flex h-2 w-2">
+                    <span
+                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </span>
+
+                Live data • Real-time updates • Interactive insights
+            </p>
+        </div>
+
+    </div>
+
+    <div class="flex flex-wrap items-end justify-end gap-2 sm:gap-3">
+        {% if show_global_filters %}
+        {% include 'partials/global_filter_bar.html' %}
+        {% endif %}
+    <form method="post" action="{% url 'dashboardapp:dashboard_low_stock' %}" class="flex flex-wrap items-end gap-2 shrink-0 rounded-xl border border-slate-200/80 bg-white/90 px-3 py-2 shadow-sm">
+        {% csrf_token %}
+        <div class="flex flex-col gap-0.5">
+            <label for="dashboard_low_stock" class="text-[11px] font-medium text-slate-600">Low stock threshold</label>
+            <input type="number" name="low_stock" id="dashboard_low_stock" min="0" value="{{ low_stock_threshold }}"
+                class="w-24 rounded-lg border border-slate-200 px-2 py-1.5 text-sm text-slate-800 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400" />
+        </div>
+        <button type="submit" class="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+            Apply
+        </button>
+    </form>
+    </div>
+
+</div>
+
+
+<div id="dashboardDynamicContent">
+{% include 'dashboardapp/dashboard_fragment.html' %}
+</div>
+</div>
+
+
+{% endblock %}

@@ -1,0 +1,5 @@
+{% if can_view %}
+<a href="{% url url_name pk %}" class="font-medium text-slate-800 hover:text-slate-600">{{ label }}</a>
+{% else %}
+<span class="font-medium text-slate-800">{{ label }}</span>
+{% endif %}

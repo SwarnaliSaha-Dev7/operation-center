@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ title }}{% endblock %}
+{% block extra_css %}
+<link href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" rel="stylesheet" crossorigin="anonymous">
+<link rel="stylesheet" href="{% static 'css/datatable.css' %}">
+{% endblock %}
+{% block content %}
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <h1 class="text-2xl font-semibold text-slate-800">{{ table_heading|default:title }}</h1>
+    {% if perms.memberapp.add_user %}
+    <a href="{% url 'memberapp:member_create' %}" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700 transition-colors shadow-sm">
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        Add Member
+    </a>
+    {% endif %}
+</div>
+<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden border-l-4 border-l-amber-500 max-h-[100vh] flex flex-col min-w-0 w-full max-w-full">
+    <div class="flex-1 min-h-0 min-w-0 overflow-x-auto overflow-y-auto">
+        <table id="memberTable" class="min-w-full divide-y divide-slate-200 display" data-server-side="true" data-non-orderable-cols="4" data-ajax-url="{% url 'memberapp:member_list_data' %}">
+            
+            <thead class="sticky top-0 z-10 bg-white border-b border-slate-200 shadow-sm">
+                <tr>
+                    {% for col in table_columns %}
+                    <th{% if forloop.last %} class="text-right"{% endif %}>{{ col }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js" crossorigin="anonymous"></script>
+<script src="{% static 'js/datatable/common/datatable-core.js' %}"></script>
+{% if perms.memberapp.change_user %}
+<script src="{% static 'js/member-list-active.js' %}"></script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,106 @@
+{% if show_global_filters %}
+{% with dp=gf.date_preset|default:'' df=gf.date_from|default:'' dt=gf.date_to|default:'' %}
+<div id="globalFilterModal" class="gf-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="gfModalTitle">
+    <div class="gf-modal-backdrop" id="globalFilterBackdrop" tabindex="-1"></div>
+    <div class="gf-modal-wrap">
+        <div class="gf-modal-panel">
+            <div class="gf-modal-glow" aria-hidden="true"></div>
+            <div class="gf-modal-head">
+                <div>
+                    <h2 id="gfModalTitle" class="text-lg font-semibold tracking-tight text-slate-900">Global filters</h2>
+                    <p class="mt-0.5 text-xs text-slate-500">Team, org, and reporting period (saved for your session)</p>
+                </div>
+                <button type="button" id="globalFilterModalClose" class="gf-modal-close rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" aria-label="Close">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <form id="globalFilterForm" method="post" action="{% url 'global_filter_apply' %}" class="gf-modal-body">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+                <div class="space-y-3">
+                    <div>
+                        <label for="gf_team" class="gf-label">Team</label>
+                        <select name="team" id="gf_team" class="gf-input gf-select">
+                            <option value="">All teams</option>
+                            {% for t in gf_teams %}
+                            <option value="{{ t.pk }}" {% if gf.team == t.pk|stringformat:"s" %}selected{% endif %}>{{ t.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="gf_department" class="gf-label">Department</label>
+                        <select name="department" id="gf_department" class="gf-input gf-select">
+                            <option value="">All departments</option>
+                            {% for d in gf_departments %}
+                            <option value="{{ d.pk }}" {% if gf.department == d.pk|stringformat:"s" %}selected{% endif %}>{{ d.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="gf_designation" class="gf-label">Designation</label>
+                        <select name="designation" id="gf_designation" class="gf-input gf-select">
+                            <option value="">All designations</option>
+                            {% for d in gf_designations %}
+                            <option value="{{ d.pk }}" {% if gf.designation == d.pk|stringformat:"s" %}selected{% endif %}>{{ d.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="gf_member" class="gf-label">Member</label>
+                        <select name="member" id="gf_member" class="gf-input gf-select">
+                            <option value="">All members</option>
+                            {% for u in gf_members %}
+                            <option value="{{ u.pk }}" {% if gf.member == u.pk|stringformat:"s" %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="gf_date_range" class="gf-label">Date range</label>
+                        <input type="hidden" name="date_preset" id="gf_date_preset" value="{{ dp }}" />
+                        <select id="gf_date_range" class="gf-input gf-select" aria-describedby="gf_date_hint">
+                            <option value="" {% if not dp and not df and not dt %}selected{% endif %}>All time</option>
+                            <option value="3" {% if dp == '3' %}selected{% endif %}>Last 3 days</option>
+                            <option value="7" {% if dp == '7' %}selected{% endif %}>Last 7 days</option>
+                            <option value="15" {% if dp == '15' %}selected{% endif %}>Last 15 days</option>
+                            <option value="30" {% if dp == '30' %}selected{% endif %}>Last 30 days</option>
+                            <option value="180" {% if dp == '180' %}selected{% endif %}>Last 180 days</option>
+                            <option value="custom"
+                                {% if dp == 'custom' %}selected{% elif df or dt %}{% if dp != '3' and dp != '7' and dp != '15' and dp != '30' and dp != '180' %}selected{% endif %}{% endif %}>Custom range…</option>
+                        </select>
+                        <p id="gf_date_hint" class="mt-1 text-[11px] text-slate-500">Presets end today; custom uses your chosen from/to dates.</p>
+                    </div>
+                    <div id="gfCustomDates" class="gf-custom-dates {% if dp == 'custom' or df or dt %}gf-custom-dates--visible{% else %}gf-custom-dates--hidden{% endif %}">
+                        <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                            <div>
+                                <label for="gf_date_from" class="gf-label">From</label>
+                                <input type="date" name="date_from" id="gf_date_from" value="{{ df }}"
+                                    class="gf-input" />
+                            </div>
+                            <div>
+                                <label for="gf_date_to" class="gf-label">To</label>
+                                <input type="date" name="date_to" id="gf_date_to" value="{{ dt }}"
+                                    class="gf-input" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="gf-modal-actions">
+                    <button type="button" id="globalFilterClear" class="gf-btn gf-btn-secondary">Clear all</button>
+                    <div class="gf-modal-actions-right">
+                        <button type="button" id="globalFilterCancel" class="gf-btn gf-btn-ghost">Cancel</button>
+                        <button type="submit" id="globalFilterApply" class="gf-btn gf-btn-primary">Apply</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<form id="globalFilterClearForm" method="post" action="{% url 'global_filter_clear' %}" class="hidden" aria-hidden="true">
+    {% csrf_token %}
+    <input type="hidden" name="next" id="gf_clear_next" value="{{ request.get_full_path }}" />
+</form>
+{% endwith %}
+{% endif %}
