@@ -25,6 +25,18 @@ from hardwareapp.models import (
 INPUT_CLASS = 'w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500'
 
 
+def validate_quantity_not_below_used(instance, quantity):
+    if not instance or not instance.pk:
+        return quantity
+
+    used_count = (instance.assign or 0) + (instance.issue or 0)
+    if quantity is not None and quantity < used_count:
+        raise forms.ValidationError(
+            f'Quantity cannot be less than assign + issue count ({used_count}).'
+        )
+    return quantity
+
+
 def _component_select_label(obj):
     """
     Format for select options: name-brand-team name-quantity [memory/capacity if present].
@@ -174,7 +186,7 @@ class ProcessorForm(forms.ModelForm):
         quantity = self.cleaned_data.get('quantity')
         if quantity and quantity < 0:
             raise forms.ValidationError('The quantity must be greater than 0')
-        return quantity
+        return validate_quantity_not_below_used(self.instance, quantity)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -242,7 +254,7 @@ class GraphicsCardForm(forms.ModelForm):
         quantity = self.cleaned_data.get('quantity')
         if quantity is not None and quantity < 0:
             raise forms.ValidationError('Quantity must be 0 or greater')
-        return quantity
+        return validate_quantity_not_below_used(self.instance, quantity)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -305,7 +317,7 @@ class MotherboardForm(forms.ModelForm):
         quantity = self.cleaned_data.get('quantity')
         if quantity is not None and quantity < 0:
             raise forms.ValidationError('Quantity must be 0 or greater')
-        return quantity
+        return validate_quantity_not_below_used(self.instance, quantity)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -367,7 +379,7 @@ class RAMForm(forms.ModelForm):
         quantity = self.cleaned_data.get('quantity')
         if quantity is not None and quantity < 0:
             raise forms.ValidationError('Quantity must be 0 or greater')
-        return quantity
+        return validate_quantity_not_below_used(self.instance, quantity)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -429,7 +441,7 @@ class HDForm(forms.ModelForm):
         quantity = self.cleaned_data.get('quantity')
         if quantity is not None and quantity < 0:
             raise forms.ValidationError('Quantity must be 0 or greater')
-        return quantity
+        return validate_quantity_not_below_used(self.instance, quantity)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -491,7 +503,7 @@ class SSDForm(forms.ModelForm):
         quantity = self.cleaned_data.get('quantity')
         if quantity is not None and quantity < 0:
             raise forms.ValidationError('Quantity must be 0 or greater')
-        return quantity
+        return validate_quantity_not_below_used(self.instance, quantity)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -546,7 +558,7 @@ class LiquidCoolerForm(forms.ModelForm):
         quantity = self.cleaned_data.get('quantity')
         if quantity is not None and quantity < 0:
             raise forms.ValidationError('Quantity must be 0 or greater')
-        return quantity
+        return validate_quantity_not_below_used(self.instance, quantity)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -599,7 +611,7 @@ class UPSForm(forms.ModelForm):
         quantity = self.cleaned_data.get('quantity')
         if quantity is not None and quantity < 0:
             raise forms.ValidationError('Quantity must be 0 or greater')
-        return quantity
+        return validate_quantity_not_below_used(self.instance, quantity)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -652,7 +664,7 @@ class MonitorForm(forms.ModelForm):
         quantity = self.cleaned_data.get('quantity')
         if quantity is not None and quantity < 0:
             raise forms.ValidationError('Quantity must be 0 or greater')
-        return quantity
+        return validate_quantity_not_below_used(self.instance, quantity)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -705,7 +717,7 @@ class KeyboardForm(forms.ModelForm):
         quantity = self.cleaned_data.get('quantity')
         if quantity is not None and quantity < 0:
             raise forms.ValidationError('Quantity must be 0 or greater')
-        return quantity
+        return validate_quantity_not_below_used(self.instance, quantity)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -758,7 +770,7 @@ class MouseForm(forms.ModelForm):
         quantity = self.cleaned_data.get('quantity')
         if quantity is not None and quantity < 0:
             raise forms.ValidationError('Quantity must be 0 or greater')
-        return quantity
+        return validate_quantity_not_below_used(self.instance, quantity)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -811,7 +823,7 @@ class HeadphoneForm(forms.ModelForm):
         quantity = self.cleaned_data.get('quantity')
         if quantity is not None and quantity < 0:
             raise forms.ValidationError('Quantity must be 0 or greater')
-        return quantity
+        return validate_quantity_not_below_used(self.instance, quantity)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -864,7 +876,7 @@ class PentableForm(forms.ModelForm):
         quantity = self.cleaned_data.get('quantity')
         if quantity is not None and quantity < 0:
             raise forms.ValidationError('Quantity must be 0 or greater')
-        return quantity
+        return validate_quantity_not_below_used(self.instance, quantity)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -917,7 +929,7 @@ class SpeakerForm(forms.ModelForm):
         quantity = self.cleaned_data.get('quantity')
         if quantity is not None and quantity < 0:
             raise forms.ValidationError('Quantity must be 0 or greater')
-        return quantity
+        return validate_quantity_not_below_used(self.instance, quantity)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -970,7 +982,7 @@ class WebcamForm(forms.ModelForm):
         quantity = self.cleaned_data.get('quantity')
         if quantity is not None and quantity < 0:
             raise forms.ValidationError('Quantity must be 0 or greater')
-        return quantity
+        return validate_quantity_not_below_used(self.instance, quantity)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -1023,7 +1035,7 @@ class PowerSupplyForm(forms.ModelForm):
         quantity = self.cleaned_data.get('quantity')
         if quantity is not None and quantity < 0:
             raise forms.ValidationError('Quantity must be 0 or greater')
-        return quantity
+        return validate_quantity_not_below_used(self.instance, quantity)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -1076,7 +1088,7 @@ class CabinetForm(forms.ModelForm):
         quantity = self.cleaned_data.get('quantity')
         if quantity is not None and quantity < 0:
             raise forms.ValidationError('Quantity must be 0 or greater')
-        return quantity
+        return validate_quantity_not_below_used(self.instance, quantity)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
